@@ -1,0 +1,56 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+*.pdb
+
+# Sanal ortamlar
+env/
+env_sadtalker/
+env_softvcfork/
+env_sdxl/
+env_coqui/
+
+# PyInstaller
+*.exe
+*.dll
+*.so
+*.dylib
+
+# IDE
+.vscode/
+.idea/
+
+# Sistem dosyaları
+.DS_Store
+Thumbs.db
+
+# Çıkış klasörleri
+output/
+tmp/
+
+# Log dosyaları
+*.log
+
+# Notebook checkpoint
+.ipynb_checkpoints/
+
+train_base_models/
+unrequired/
+personal_source/
+comparison/
+models/
+gfpgan/
+xtts/
+SadTalker/
+TTS/
+
+dist/
+build/
+
+.gitignore
+avatars.db
+
+src/sample_voice.wav
