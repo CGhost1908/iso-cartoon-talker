@@ -1,0 +1,9 @@
+pywebview
+Pillow
+torch
+numpy
+tqdm
+safetensors
+scipy
+scikit-learn
+transformers
