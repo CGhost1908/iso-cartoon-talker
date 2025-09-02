@@ -7,3 +7,4 @@ safetensors
 scipy
 scikit-learn
 transformers
+typing-extensions==4.12.2
