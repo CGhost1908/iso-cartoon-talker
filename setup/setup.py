@@ -78,77 +78,77 @@ class Api:
 
         os.chdir(iso_path)
 
-        cmd2 = self.run_command([
-            "pip",
-            "install",
-            "-r", "requirements.txt"
-        ], description="Installing requirements...")
+        # cmd2 = self.run_command([
+        #     "pip",
+        #     "install",
+        #     "-r", "requirements.txt"
+        # ], description="Installing requirements...")
 
-        cmd3 = self.run_command([
-            "pip",
-            "download",
-            "torch==2.7.1+cu118", "--index-url", "https://download.pytorch.org/whl/cu118", "--no-deps"
-        ], description="Downloading torch...")
+        # cmd3 = self.run_command([
+        #     "pip",
+        #     "download",
+        #     "torch==2.7.1+cu118", "--index-url", "https://download.pytorch.org/whl/cu118", "--no-deps"
+        # ], description="Downloading torch...")
 
-        cmd4 = self.run_command([
-            "pip",
-            "download",
-            "torchaudio==2.7.1+cu118", "--index-url", "https://download.pytorch.org/whl/cu118", "--no-deps"
-        ], description="Downloading torchaudio...")
+        # cmd4 = self.run_command([
+        #     "pip",
+        #     "download",
+        #     "torchaudio==2.7.1+cu118", "--index-url", "https://download.pytorch.org/whl/cu118", "--no-deps"
+        # ], description="Downloading torchaudio...")
 
-        cmd5 = self.run_command([
-            "pip",
-            "download",
-            "torchvision==0.22.1+cu118", "--index-url", "https://download.pytorch.org/whl/cu118", "--no-deps"
-        ], description="Downloading torchvision...")
+        # cmd5 = self.run_command([
+        #     "pip",
+        #     "download",
+        #     "torchvision==0.22.1+cu118", "--index-url", "https://download.pytorch.org/whl/cu118", "--no-deps"
+        # ], description="Downloading torchvision...")
 
-        # SDXL Setup
-        cmd6 = self.run_command([
-            "python",
-            "-m",
-            "venv",
-            "env_sdxl"
-        ], description="Creating environment for SDXL...")
+        # # SDXL Setup
+        # cmd6 = self.run_command([
+        #     "python",
+        #     "-m",
+        #     "venv",
+        #     "env_sdxl"
+        # ], description="Creating environment for SDXL...")
 
-        cmd7 = self.run_command([
-            "env_sdxl/Scripts/pip.exe",
-            "install",
-            "torch-2.7.1+cu118-cp310-cp310-win_amd64.whl"
-        ], description="Installing torch...")
+        # cmd7 = self.run_command([
+        #     "env_sdxl/Scripts/pip.exe",
+        #     "install",
+        #     "torch-2.7.1+cu118-cp310-cp310-win_amd64.whl"
+        # ], description="Installing torch...")
 
-        cmd8 = self.run_command([
-            "env_sdxl/Scripts/pip.exe",
-            "install",
-            "torchaudio-2.7.1+cu118-cp310-cp310-win_amd64.whl"
-        ], description="Installing torchaudio...")
+        # cmd8 = self.run_command([
+        #     "env_sdxl/Scripts/pip.exe",
+        #     "install",
+        #     "torchaudio-2.7.1+cu118-cp310-cp310-win_amd64.whl"
+        # ], description="Installing torchaudio...")
 
-        cmd9 = self.run_command([
-            "env_sdxl/Scripts/pip.exe",
-            "install",
-            "torchvision-0.22.1+cu118-cp310-cp310-win_amd64.whl"
-        ], description="Installing torchvision...")
+        # cmd9 = self.run_command([
+        #     "env_sdxl/Scripts/pip.exe",
+        #     "install",
+        #     "torchvision-0.22.1+cu118-cp310-cp310-win_amd64.whl"
+        # ], description="Installing torchvision...")
 
-        if not (cmd7 or cmd8 or cmd9):
-            cmd9_1 = self.run_command([
-                "env_sdxl/Scripts/pip.exe",
-                "install",
-                "torch==2.7.1",
-                "torchvision==0.22.1",
-                "torchaudio==2.7.1",
-                "--index-url",
-                "https://download.pytorch.org/whl/cu118", "--no-deps"
-            ], description="Installing torch...")
+        # if not (cmd7 or cmd8 or cmd9):
+        #     cmd9_1 = self.run_command([
+        #         "env_sdxl/Scripts/pip.exe",
+        #         "install",
+        #         "torch==2.7.1",
+        #         "torchvision==0.22.1",
+        #         "torchaudio==2.7.1",
+        #         "--index-url",
+        #         "https://download.pytorch.org/whl/cu118", "--no-deps"
+        #     ], description="Installing torch...")
 
-        cmd10 = self.run_command([
-            "env_sdxl/Scripts/pip.exe",
-            "install",
-            "diffusers==0.34.0",
-            "huggingface_hub==0.34.3",
-            "pillow==11.3.0",
-            "transformers==4.54.1",
-            "accelerate==1.9.0",
-            "typing-extensions==4.15"
-        ], description="Installing requirements for SDXL...")
+        # cmd10 = self.run_command([
+        #     "env_sdxl/Scripts/pip.exe",
+        #     "install",
+        #     "diffusers==0.34.0",
+        #     "huggingface_hub==0.34.3",
+        #     "pillow==11.3.0",
+        #     "transformers==4.54.1",
+        #     "accelerate==1.9.0",
+        #     "typing-extensions==4.15"
+        # ], description="Installing requirements for SDXL...")
 
         #SoftVC Setup
         cmd11 = self.run_command([
@@ -168,20 +168,20 @@ class Api:
         ], description="Installing requirements for SoftVC...")
 
         cmd13 = self.run_command([
-            "env_sdxl/Scripts/pip.exe",
+            "env_softvc/Scripts/pip.exe",
             "install",
             "torch-2.7.1+cu118-cp310-cp310-win_amd64.whl"
         ], description="Installing torch...")
 
         cmd14 = self.run_command([
-            "env_sdxl/Scripts/pip.exe",
+            "env_softvc/Scripts/pip.exe",
             "install",
             "torchaudio-2.7.1+cu118-cp310-cp310-win_amd64.whl"
         ], description="Installing torchaudio...")
 
         if not (cmd13 or cmd14):
             cmd14_1 = self.run_command([
-                "env_sdxl/Scripts/pip.exe",
+                "env_softvc/Scripts/pip.exe",
                 "install",
                 "torch==2.7.1",
                 "torchaudio==2.7.1",
