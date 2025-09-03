@@ -23,6 +23,7 @@ class Api:
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 text=True,
+                creationflags=subprocess.CREATE_NO_WINDOW,
                 check=True
             )
             for line in result.stdout.splitlines():
@@ -58,8 +59,7 @@ class Api:
             webview.windows[0].evaluate_js("raiseError('Python 3.10 yüklü değil!')")
             return
 
-        # # program_files = os.path.join(os.environ['ProgramFiles'])
-        program_files = os.path.join('D:\\', 'deneme')
+        program_files = os.path.join(os.environ['ProgramFiles'])
 
         os.makedirs(program_files, exist_ok=True)
         os.chdir(program_files)
@@ -319,7 +319,7 @@ class Api:
             checkpoints_path,
             weights_path,
             train_base_models_path,
-            os.join(iso_path, "src")
+            os.path.join(iso_path, "src")
         ]
 
         try:
@@ -358,6 +358,15 @@ class Api:
         except Exception as e:
             [self.log(f"Error fixing model files! That is important please read documentation!: {e}") for _ in range(30)]
 
+        current_dir = os.getcwd()
+        for filename in os.listdir(current_dir):
+            if filename.endswith(".whl"):
+                file_path = os.path.join(current_dir, filename)
+                try:
+                    os.remove(file_path)
+                    print(f"Deleted: {file_path}")
+                except Exception as e:
+                    print(f"Error deleting {file_path}: {e}")
 
         self.log("Installation completed successfully!")
         webview.windows[0].evaluate_js("showFinishPage()")

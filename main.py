@@ -12,8 +12,7 @@ import random
 import string
 import traceback
 
-# program_files = os.path.join(os.environ['ProgramFiles'])
-program_files = os.path.join('D:\\', 'deneme')
+program_files = os.path.join(os.environ['ProgramFiles'])
 
 iso_path = os.path.join(program_files, 'iso-cartoon-talker')
 os.chdir(iso_path)
@@ -284,4 +283,4 @@ class Api:
 if __name__ == '__main__':
     api = Api()
     window = webview.create_window('CartoonTalker', 'index.html', width=800, height=600, js_api=api)
-    webview.start(debug=True)
+    webview.start()
