@@ -52,7 +52,8 @@ class Api:
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
-            bufsize=1
+            bufsize=1,
+            creationflags=subprocess.CREATE_NO_WINDOW
         )
         for line in process.stdout:
             self.log(line.strip())

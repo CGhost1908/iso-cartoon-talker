@@ -62,7 +62,7 @@ p{
     background-color: #45a049;
 }
 
-#terminal, .terminal{
+#terminal, .terminal, .xterm{
     height: 100% !important;
 }
 

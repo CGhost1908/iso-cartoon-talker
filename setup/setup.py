@@ -78,77 +78,77 @@ class Api:
 
         os.chdir(iso_path)
 
-        # cmd2 = self.run_command([
-        #     "pip",
-        #     "install",
-        #     "-r", "requirements.txt"
-        # ], description="Installing requirements...")
+        cmd2 = self.run_command([
+            "pip",
+            "install",
+            "-r", "requirements.txt"
+        ], description="Installing requirements...")
 
-        # cmd3 = self.run_command([
-        #     "pip",
-        #     "download",
-        #     "torch==2.7.1+cu118", "--index-url", "https://download.pytorch.org/whl/cu118", "--no-deps"
-        # ], description="Downloading torch...")
+        cmd3 = self.run_command([
+            "pip",
+            "download",
+            "torch==2.7.1+cu118", "--index-url", "https://download.pytorch.org/whl/cu118", "--no-deps"
+        ], description="Downloading torch...")
 
-        # cmd4 = self.run_command([
-        #     "pip",
-        #     "download",
-        #     "torchaudio==2.7.1+cu118", "--index-url", "https://download.pytorch.org/whl/cu118", "--no-deps"
-        # ], description="Downloading torchaudio...")
+        cmd4 = self.run_command([
+            "pip",
+            "download",
+            "torchaudio==2.7.1+cu118", "--index-url", "https://download.pytorch.org/whl/cu118", "--no-deps"
+        ], description="Downloading torchaudio...")
 
-        # cmd5 = self.run_command([
-        #     "pip",
-        #     "download",
-        #     "torchvision==0.22.1+cu118", "--index-url", "https://download.pytorch.org/whl/cu118", "--no-deps"
-        # ], description="Downloading torchvision...")
+        cmd5 = self.run_command([
+            "pip",
+            "download",
+            "torchvision==0.22.1+cu118", "--index-url", "https://download.pytorch.org/whl/cu118", "--no-deps"
+        ], description="Downloading torchvision...")
 
-        # # SDXL Setup
-        # cmd6 = self.run_command([
-        #     "python",
-        #     "-m",
-        #     "venv",
-        #     "env_sdxl"
-        # ], description="Creating environment for SDXL...")
+        # SDXL Setup
+        cmd6 = self.run_command([
+            "python",
+            "-m",
+            "venv",
+            "env_sdxl"
+        ], description="Creating environment for SDXL...")
 
-        # cmd7 = self.run_command([
-        #     "env_sdxl/Scripts/pip.exe",
-        #     "install",
-        #     "torch-2.7.1+cu118-cp310-cp310-win_amd64.whl"
-        # ], description="Installing torch...")
+        cmd7 = self.run_command([
+            "env_sdxl/Scripts/pip.exe",
+            "install",
+            "torch-2.7.1+cu118-cp310-cp310-win_amd64.whl"
+        ], description="Installing torch...")
 
-        # cmd8 = self.run_command([
-        #     "env_sdxl/Scripts/pip.exe",
-        #     "install",
-        #     "torchaudio-2.7.1+cu118-cp310-cp310-win_amd64.whl"
-        # ], description="Installing torchaudio...")
+        cmd8 = self.run_command([
+            "env_sdxl/Scripts/pip.exe",
+            "install",
+            "torchaudio-2.7.1+cu118-cp310-cp310-win_amd64.whl"
+        ], description="Installing torchaudio...")
 
-        # cmd9 = self.run_command([
-        #     "env_sdxl/Scripts/pip.exe",
-        #     "install",
-        #     "torchvision-0.22.1+cu118-cp310-cp310-win_amd64.whl"
-        # ], description="Installing torchvision...")
+        cmd9 = self.run_command([
+            "env_sdxl/Scripts/pip.exe",
+            "install",
+            "torchvision-0.22.1+cu118-cp310-cp310-win_amd64.whl"
+        ], description="Installing torchvision...")
 
-        # if not (cmd7 or cmd8 or cmd9):
-        #     cmd9_1 = self.run_command([
-        #         "env_sdxl/Scripts/pip.exe",
-        #         "install",
-        #         "torch==2.7.1",
-        #         "torchvision==0.22.1",
-        #         "torchaudio==2.7.1",
-        #         "--index-url",
-        #         "https://download.pytorch.org/whl/cu118", "--no-deps"
-        #     ], description="Installing torch...")
+        if not (cmd7 or cmd8 or cmd9):
+            cmd9_1 = self.run_command([
+                "env_sdxl/Scripts/pip.exe",
+                "install",
+                "torch==2.7.1",
+                "torchvision==0.22.1",
+                "torchaudio==2.7.1",
+                "--index-url",
+                "https://download.pytorch.org/whl/cu118", "--no-deps"
+            ], description="Installing torch...")
 
-        # cmd10 = self.run_command([
-        #     "env_sdxl/Scripts/pip.exe",
-        #     "install",
-        #     "diffusers==0.34.0",
-        #     "huggingface_hub==0.34.3",
-        #     "pillow==11.3.0",
-        #     "transformers==4.54.1",
-        #     "accelerate==1.9.0",
-        #     "typing-extensions==4.15"
-        # ], description="Installing requirements for SDXL...")
+        cmd10 = self.run_command([
+            "env_sdxl/Scripts/pip.exe",
+            "install",
+            "diffusers==0.34.0",
+            "huggingface_hub==0.34.3",
+            "pillow==11.3.0",
+            "transformers==4.54.1",
+            "accelerate==1.9.0",
+            "typing-extensions==4.15"
+        ], description="Installing requirements for SDXL...")
 
         #SoftVC Setup
         cmd11 = self.run_command([
@@ -277,6 +277,12 @@ class Api:
             "--extra-index-url", "https://download.pytorch.org/whl/cu113"
         ], description="Installing torch...")
 
+        self.run_command([
+            "pip",
+            "cache",
+            "purge"
+        ], description="Cleaning cache...")
+
         try:
             self.log("Modifying inference.py...")
             inference_path = "SadTalker/inference.py"
@@ -376,9 +382,8 @@ class Api:
         self.create_shortcut(target, shortcut)
 
     def create_shortcut(self, target_py, shortcut_path):
-        python_exe = sys.executable
+        python_exe = sys.executable.replace("python.exe", "pythonw.exe")
         working_dir = os.path.dirname(target_py)
-
         shell = Dispatch('WScript.Shell')
         shortcut = shell.CreateShortCut(shortcut_path)
         shortcut.Targetpath = python_exe
@@ -386,6 +391,14 @@ class Api:
         shortcut.WorkingDirectory = working_dir
         shortcut.IconLocation = python_exe
         shortcut.save()
+
+        with open(shortcut_path, "rb") as f2:
+            ba = bytearray(f2.read())
+
+        ba[0x15] = ba[0x15] | 0x20
+
+        with open(shortcut_path, "wb") as f3:
+            f3.write(ba)
 
 if __name__ == '__main__':
     api = Api()
