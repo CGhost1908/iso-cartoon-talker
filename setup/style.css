@@ -1,0 +1,127 @@
+
+body{
+    background-color: #212020;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    color: #fff;
+    overflow: hidden;
+}
+
+li{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+p{
+    margin: 0 5px;
+}
+
+.green{
+    color: #4CAF50;
+    font-weight: bold;
+}
+
+.red{
+    color: #f44336;
+    font-weight: bold;
+}
+
+.yellow{
+    color: #ffeb3b;
+    font-weight: bold;
+}   
+
+.blue{
+    color: #2196F3;
+    font-weight: bold;
+}
+
+.page{
+    padding: 40px;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: calc(100vw - 80px);
+    height: calc(100vh - 80px);
+}
+
+.start-installation-button{
+    padding: 15px 30px;
+    font-size: 18px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: auto;    
+}
+
+.start-installation-button:hover{
+    background-color: #45a049;
+}
+
+#terminal, .terminal{
+    height: 100% !important;
+}
+
+.error{
+    font-size: 192px;
+    margin: -80px 0 30px 0;
+}
+
+.error-text{
+    font-size: 18px;
+    text-align: center;
+}
+
+.close-button{
+    padding: 15px 30px;
+    font-size: 18px;
+    background-color: #f44336;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 80px;
+}
+
+.finish-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    color: #ccc;
+    padding: 20px;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+.finish-container h1 {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+    color: #4caf50;
+}
+
+.finish-container p {
+    font-size: 1.2rem;
+    margin-bottom: 40px;
+    max-width: 600px;
+}
+
+button#finishBtn {
+    background-color: #1976d2;
+    color: #fff;
+    border: none;
+    padding: 15px 30px;
+    font-size: 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+button#finishBtn:hover {
+    background-color: #1565c0;
+}

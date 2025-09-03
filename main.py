@@ -12,8 +12,15 @@ import random
 import string
 import traceback
 
-voice_train_config_path = 'models/softvc_config.json'
+# program_files = os.path.join(os.environ['ProgramFiles'])
+program_files = os.path.join('D:\\', 'deneme')
+
+iso_path = os.path.join(program_files, 'iso-cartoon-talker')
+os.chdir(iso_path)
+
+voice_train_config_path = 'configs/softvc_config.json'
 models_path = 'models'
+os.makedirs(models_path, exist_ok=True)
 
 conn = sqlite3.connect('avatars.db')
 cursor = conn.cursor()
@@ -29,7 +36,7 @@ CREATE TABLE IF NOT EXISTS avatars (
 conn.commit()
 conn.close()
 
-tmp_dir = os.path.join("tmp")
+tmp_dir = os.path.join(iso_path, "tmp")
 os.makedirs(tmp_dir, exist_ok=True)
 
 class Api:
@@ -42,6 +49,7 @@ class Api:
             self.log(description)
         process = subprocess.Popen(
             cmd,
+            cwd=iso_path,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
@@ -73,7 +81,7 @@ class Api:
         try:
             if model_path:
                 self.run_command([
-                    r"env_softvcfork\Scripts\svc.exe",
+                    r"env_softvc\Scripts\svc.exe",
                     "infer",
                     target_path,
                     "-o", final_audio_path,
@@ -119,11 +127,11 @@ class Api:
     # ------------------ Voice Training ------------------
     def voice_train(self, audio_base64, epoch, avatar_name):
         try:
-            tmp_path = os.path.abspath("tmp")
+            tmp_path = tmp_dir
             source_dir = os.path.join(tmp_path, "dataset_raw_raw")
             os.makedirs(source_dir, exist_ok=True)
 
-            audio_path = os.path.abspath(os.path.join(source_dir, "train_input.wav"))
+            audio_path = os.path.join(source_dir, "train_input.wav")
             audio_data = base64.b64decode(audio_base64)
             with open(audio_path, "wb") as f:
                 f.write(audio_data)
@@ -139,14 +147,15 @@ class Api:
             try:
                 print("Modeller kopyalanıyor...")
                 for f in ['G_0.pth','D_0.pth']:
-                    shutil.copy(os.path.join('train_base_models', f), 'tmp')
+                    shutil.copy(os.path.join(iso_path, 'train_base_models', f), tmp_path)
             except Exception as e:
                 print("Model bulunamadı indiriliyor...")
-                pass
 
             # ---------------- pre-split ----------------
+            self.log(source_dir)
+            self.log(dataset_raw_dir)
             self.run_command([
-                r"env_softvcfork\Scripts\svc.exe",
+                r"env_softvc\Scripts\svc.exe",
                 "pre-split",
                 "-i", source_dir,
                 "-o", dataset_raw_dir
@@ -161,7 +170,7 @@ class Api:
 
             # ---------------- pre-config ----------------
             self.run_command([
-                r"env_softvcfork\Scripts\svc.exe",
+                r"env_softvc\Scripts\svc.exe",
                 "pre-config",
                 "-i", dataset_dir,
                 "-f", filelists_dir,
@@ -171,7 +180,7 @@ class Api:
             # ---------------- epoch ----------------
             with open(voice_train_config_path, 'r') as f:
                 config = json.load(f) 
-                
+              
             config['train']['epochs'] = int(epoch)
 
             with open(voice_train_config_path, 'w') as f:
@@ -179,7 +188,7 @@ class Api:
 
             # ---------------- pre-hubert ----------------
             self.run_command([
-                r"env_softvcfork\Scripts\svc.exe",
+                r"env_softvc\Scripts\svc.exe",
                 "pre-hubert",
                 "-i", dataset_dir,
                 "-c", os.path.abspath(voice_train_config_path)
@@ -187,7 +196,7 @@ class Api:
 
             # ---------------- train ----------------
             self.run_command([
-                r"env_softvcfork\Scripts\svc.exe",
+                r"env_softvc\Scripts\svc.exe",
                 "train", "-t",
                 "-c", os.path.abspath(voice_train_config_path),
                 "-m", os.path.abspath(tmp_dir),
@@ -202,7 +211,7 @@ class Api:
             return {"status": "ok", "path": dst_path}
 
         except Exception as e:
-            print(str(e))
+            self.log(str(e))
             return {"status": "error", "message": str(e), "trace": traceback.format_exc()}
         finally:
             for f in os.listdir(tmp_path):
