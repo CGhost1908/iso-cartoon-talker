@@ -488,6 +488,7 @@ function closeEditSection(){
     document.querySelector('.train-voice-name').textContent = '';
     trainVoiceInput.parentElement.style.backgroundColor = '';
     startVoiceTrainButton.disabled = true;
+    refreshAvatars()
     goToHome();
 }
 
