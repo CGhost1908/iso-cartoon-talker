@@ -69,6 +69,8 @@ class Api:
             webview.windows[0].evaluate_js(r"raiseError('C:/Program Files/iso-cartoon-talker dizini zaten mevcut! Klasörü silip tekrar deneyin.')")
             return
 
+        error_log = r"Error log:\n If you have problems, contact us and share this file.\n\n"
+
         #Install commands
         cmd1 = self.run_command([
             "git",
@@ -159,7 +161,9 @@ class Api:
         ], description="Creating environment for SoftVC...")
 
         cmd12 = self.run_command([
-            "env_softvc/Scripts/pip.exe",
+            "env_softvc/Scripts/python.exe",
+            "-m",
+            "pip",
             "install",
             "-U",
             "pip",
@@ -204,27 +208,27 @@ class Api:
         ], description="Installing so-vits-svc-fork...")
 
         # Coqui TTS Setup
-        self.run_command([
+        cmd17 = self.run_command([
             "python",
             "-m",
             "venv",
             "env_coqui"
         ], description="Creating environment for Coqui TTS...")
 
-        self.run_command([
+        cmd18 = self.run_command([
             "git",
             "clone",
             "https://github.com/coqui-ai/TTS"
         ], description="Cloning Coqui TTS repository...")
 
-        self.run_command([
+        cmd19 = self.run_command([
             "env_coqui/Scripts/pip.exe",
             "install",
             "-r",
             "TTS/requirements.txt"
         ], description="Installing requirements...")
 
-        self.run_command([
+        cmd20 = self.run_command([
             "env_coqui/Scripts/pip.exe",
             "install",
             "torch==2.4.1",
@@ -233,7 +237,7 @@ class Api:
             "--index-url", "https://download.pytorch.org/whl/cu118"
         ], description="Installing torch...")
 
-        self.run_command([
+        cmd21 = self.run_command([
             "env_coqui/Scripts/pip.exe",
             "install",
             "sympy==1.12",
@@ -242,33 +246,33 @@ class Api:
         ], description="Installing requirements...")
 
         # SadTalker Setup
-        self.run_command([
+        cmd22 = self.run_command([
             "python",
             "-m",
             "venv",
             "env_sadtalker"
         ], description="Creating environment for SadTalker...")
 
-        self.run_command([
+        cmd23 = self.run_command([
             "git",
             "clone",
             "https://github.com/OpenTalker/SadTalker"
         ], description="Cloning Coqui TTS repository...")
 
-        self.run_command([
+        cmd24 = self.run_command([
             "env_sadtalker/Scripts/pip.exe",
             "install",
             "ffmpeg"
         ], description="Installing ffmpeg...")
 
-        self.run_command([
+        cmd25 = self.run_command([
             "env_sadtalker/Scripts/pip.exe",
             "install",
             "-r",
             "SadTalker/requirements.txt"
         ], description="Installing requirements...")
 
-        self.run_command([
+        cmd26 = self.run_command([
             "env_sadtalker/Scripts/pip.exe",
             "install",
             "torch==1.12.1+cu113",
@@ -277,7 +281,7 @@ class Api:
             "--extra-index-url", "https://download.pytorch.org/whl/cu113"
         ], description="Installing torch...")
 
-        self.run_command([
+        cmd27 = self.run_command([
             "pip",
             "cache",
             "purge"
@@ -294,6 +298,7 @@ class Api:
             with open(inference_path, "w", encoding="utf-8") as f:
                 f.write(content)
         except Exception as e:
+            error_log += f"Error modifying inference.py: {e}\n"
             [ self.log(f"Error modifying inference.py! That is important please read documentation!: {e}") for _ in range(30) ]
 
         try:
@@ -304,6 +309,7 @@ class Api:
 
             self.log(f"inference_api.py moved to SadTalker.")
         except Exception as e:
+            error_log += f"Error moving inference_api.py: {e}\n"
             [ self.log(f"Error moving inference_api.py! That is important please read documentation!: {e}") for _ in range(30) ]
 
         checkpoints_path = os.path.join(iso_path, "SadTalker", "checkpoints")
@@ -316,7 +322,7 @@ class Api:
         os.makedirs(train_base_models_path, exist_ok=True)
         self.log(f"Created {train_base_models_path}")
 
-        self.run_command([
+        cmd28 = self.run_command([
             "bash",
             "models.sh"
         ], description="Downloading models...")
@@ -336,7 +342,7 @@ class Api:
 
                 for filename in os.listdir(folder_path):
                     old_path = os.path.join(folder_path, filename)
-                  
+                
                     if not os.path.isfile(old_path):
                         continue
 
@@ -362,6 +368,7 @@ class Api:
                         self.log(f"Fixed extension: {filename} -> {new_name}")
 
         except Exception as e:
+            error_log += f"Error fixing model files: {e}\n"
             [self.log(f"Error fixing model files! That is important please read documentation!: {e}") for _ in range(30)]
 
         current_dir = os.getcwd()
@@ -374,12 +381,26 @@ class Api:
                 except Exception as e:
                     print(f"Error deleting {file_path}: {e}")
 
-        self.log("Installation completed successfully!")
-        webview.windows[0].evaluate_js("showFinishPage()")
+
+        cmds = [cmd1, cmd2, cmd3, cmd4, cmd5,cmd6, cmd7, cmd8, cmd9, cmd9_1, cmd10, cmd11, cmd12, cmd13, cmd14, cmd14_1, cmd15, cmd16, cmd17, cmd18, cmd19, cmd20, cmd21, cmd22, cmd23, cmd24, cmd25, cmd26, cmd27, cmd28]
+        for i, cmd in enumerate(cmds, start=1):
+            if cmd is False:
+                error_log += f"{i}. Command failed.\n"
+            else:
+                error_log += f"{i}. Command succeeded.\n"
+
+        desktop_path = os.path.join(os.environ['USERPROFILE'], 'Desktop')
+        error_log_path = os.path.join(desktop_path, 'cartoon_talker_install_error_log.txt')
+        with open(error_log_path, 'w', encoding='utf-8') as f:
+            f.write(error_log)
+        self.log(f"Error log written to {error_log_path}")
 
         shortcut = os.path.join(os.environ['USERPROFILE'], 'Desktop', 'Cartoon Talker.lnk')
         target = os.path.join(iso_path, 'main.py')
         self.create_shortcut(target, shortcut)
+
+        self.log("Installation completed successfully!")
+        webview.windows[0].evaluate_js("showFinishPage()")
 
     def create_shortcut(self, target_py, shortcut_path):
         python_exe = sys.executable.replace("python.exe", "pythonw.exe")
