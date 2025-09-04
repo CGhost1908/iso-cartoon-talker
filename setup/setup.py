@@ -342,7 +342,7 @@ class Api:
 
                 for filename in os.listdir(folder_path):
                     old_path = os.path.join(folder_path, filename)
-                
+              
                     if not os.path.isfile(old_path):
                         continue
 
@@ -377,27 +377,29 @@ class Api:
                 file_path = os.path.join(current_dir, filename)
                 try:
                     os.remove(file_path)
-                    print(f"Deleted: {file_path}")
+                    self.log(f"Deleted: {file_path}")
                 except Exception as e:
-                    print(f"Error deleting {file_path}: {e}")
+                    self.log(f"Error deleting {file_path}: {e}")
 
 
-        cmds = [cmd1, cmd2, cmd3, cmd4, cmd5,cmd6, cmd7, cmd8, cmd9, cmd9_1, cmd10, cmd11, cmd12, cmd13, cmd14, cmd14_1, cmd15, cmd16, cmd17, cmd18, cmd19, cmd20, cmd21, cmd22, cmd23, cmd24, cmd25, cmd26, cmd27, cmd28]
+        cmds = [cmd1, cmd2, cmd3, cmd4, cmd5, cmd6, cmd7, cmd8, cmd9, cmd10, cmd11, cmd12, cmd13, cmd14, cmd15, cmd16, cmd17, cmd18, cmd19, cmd20, cmd21, cmd22, cmd23, cmd24, cmd25, cmd26, cmd27, cmd28]
         for i, cmd in enumerate(cmds, start=1):
-            if cmd is False:
-                error_log += f"{i}. Command failed.\n"
+            if not cmd:
+                error_log += f"{i}. Command failed.      "
             else:
-                error_log += f"{i}. Command succeeded.\n"
+                error_log += f"{i}. Command succeeded.      "
 
-        desktop_path = os.path.join(os.environ['USERPROFILE'], 'Desktop')
-        error_log_path = os.path.join(desktop_path, 'cartoon_talker_install_error_log.txt')
+        error_log_path = os.path.join(iso_path, 'error_log.txt')
         with open(error_log_path, 'w', encoding='utf-8') as f:
             f.write(error_log)
         self.log(f"Error log written to {error_log_path}")
 
-        shortcut = os.path.join(os.environ['USERPROFILE'], 'Desktop', 'Cartoon Talker.lnk')
-        target = os.path.join(iso_path, 'main.py')
-        self.create_shortcut(target, shortcut)
+        try:
+            shortcut = os.path.join(os.environ['USERPROFILE'], 'Desktop', 'Cartoon Talker.lnk')
+            target = os.path.join(iso_path, 'main.py')
+            self.create_shortcut(target, shortcut)
+        except Exception as e:
+            [self.log(f"Error creating shortcut!: {e}") for _ in range(30)]
 
         self.log("Installation completed successfully!")
         webview.windows[0].evaluate_js("showFinishPage()")
