@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>ISO Cartoon Talker Setup</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm/css/xterm.css" />
+    <script src="https://cdn.jsdelivr.net/npm/xterm/lib/xterm.js"></script>
+</head>
+<body>
+    <div class="page" id="1" style="display: flex;">
+        <h1>ISO Cartoon Talker Kurulumu</h1>
+        <p>ISO Cartoon Talker'ı bilgisayarınıza kurmak için lütfen aşağıdaki adımları izleyin:</p>
+        <ol>
+            <li>1- Kurulum dosyaları <p class="yellow">C:\Program Files</p> dizinine kaydedilecektir.</li>
+            <li>2- Kurulum için <p class="blue">en az 50GB</p> boş yer olmalıdır.</li>
+            <li>3- Yaklaşık 25GB veri indirilecektir. Kablosuz ağa bağlı olduğunuzdan emin olun.</li>
+            <li>4- <p class="red">Python 3.10 (3.10.9 sürümünde test edildi) sürümü yüklü ve Path'de etkin olmalıdır.</p></li>
+            <li>5- Uygun Python sürümü yüklü olmadığı takdirde hata alacaksınızdır.</li>
+            <li><p class="red">5- Git yüklü ve Path'e ekli olmalıdır.</p></li>
+            <li>6- Setup dosyasi <p class="red">yönetici olarak</p> çalıştırılmalıdır.</li>
+            <li>7- "Install" butonuna tıklayın.</li>
+            <li>8- Kurulum tamamlandığında, masaüstünüzdeki kısayolu kullanarak programı başlatabilirsiniz.</li>
+        </ol>
+        <button class="start-installation-button" onclick="startInstallation()">Install</button>
+    </div>
+    <div class="page" id="2">
+        <div id="terminal"></div>
+    </div>
+    <div class="page" id="3">
+        <p class="error">⚠️</p>
+        <p class="error-text">Hata oluştu!</p>
+        <button class="close-button" onclick="closeInstaller()">Close Installer</button>
+    </div>
+    <div class="page" id="4">
+        <div class="finish-container">
+            <h1>✅ Kurulum Tamamlandı!</h1>
+            <p>Tebrikler! Tüm kurulum başarıyla tamamlandı. Artık programınızı kullanmaya başlayabilirsiniz.</p>
+            <button id="finishBtn" onclick="closeInstaller()">Finish</button>
+        </div>
+    </div>
+</body>
+<script src="script.js"></script>
+</html>
