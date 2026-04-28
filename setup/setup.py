@@ -14,16 +14,72 @@ class Api:
         js_code = f"appendOutput({text!r})"
         webview.windows[0].evaluate_js(js_code)
 
-    def run_command(self, cmd, description=""):
+    def patch_preprocess_hubert_f0(self):
+        """Patch preprocess_hubert_f0.py to use soundfile instead of torchaudio.load()"""
+        try:
+            import site
+            site_packages = site.getsitepackages()[0]
+            file_path = os.path.join(site_packages, "so_vits_svc_fork", "preprocessing", "preprocess_hubert_f0.py")
+
+            if not os.path.exists(file_path):
+                self.log(f"Warning: Could not find {file_path}")
+                return False
+
+            with open(file_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+
+            # Check if already patched
+            if "import soundfile" in content and 'soundfile.read(str(filepath))' in content:
+                self.log("preprocess_hubert_f0.py already patched!")
+                return True
+
+            # Add soundfile import if not present
+            if "import soundfile" not in content:
+                content = content.replace(
+                    "import torchaudio\nfrom joblib",
+                    "import torchaudio\nimport soundfile\nfrom joblib"
+                )
+
+            # Replace torchaudio.load() with soundfile.read()
+            old_code = "    # Compute spectrogram\n    audio, sr = torchaudio.load(filepath)\n    spec = spectrogram_torch(audio, hps).squeeze(0)"
+            new_code = """    # Compute spectrogram
+    audio_np, sr_check = soundfile.read(str(filepath))
+    if audio_np.ndim > 1:
+        audio_np = np.mean(audio_np, axis=1)
+    audio = torch.from_numpy(audio_np).float().unsqueeze(0)
+    spec = spectrogram_torch(audio, hps).squeeze(0)"""
+
+            if old_code in content:
+                content = content.replace(old_code, new_code)
+
+            with open(file_path, 'w', encoding='utf-8') as f:
+                f.write(content)
+
+            self.log("Successfully patched preprocess_hubert_f0.py!")
+            return True
+        except Exception as e:
+            self.log(f"Error patching preprocess_hubert_f0.py: {e}")
+            return False
+
+    def run_command(self, cmd, description="", env_vars=None):
         if description:
             self.log(description)
         try:
+            env = os.environ.copy()
+            if env_vars:
+                env.update(env_vars)
+            # Ensure UTF-8 encoding in subprocess
+            env.setdefault("PYTHONIOENCODING", "utf-8")
+            env.setdefault("PYTHONLEGACYWINDOWSSTDIO", "utf8")
             result = subprocess.run(
                 cmd,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 text=True,
+                encoding='utf-8',
+                errors='replace',
                 creationflags=subprocess.CREATE_NO_WINDOW,
+                env=env,
                 check=True
             )
             for line in result.stdout.splitlines():
@@ -206,6 +262,21 @@ class Api:
             "-U",
             "so-vits-svc-fork"
         ], description="Installing so-vits-svc-fork...")
+
+        cmd16_1 = self.run_command([
+            "env_softvc/Scripts/pip.exe",
+            "uninstall",
+            "torchcodec",
+            "-y"
+        ], description="Removing torchcodec (requires FFmpeg DLLs)...")
+
+        cmd16_2 = self.run_command([
+            "env_softvc/Scripts/pip.exe",
+            "install",
+            "soundfile"
+        ], description="Installing soundfile for audio loading...")
+
+        self.patch_preprocess_hubert_f0()
 
         # Coqui TTS Setup
         cmd17 = self.run_command([

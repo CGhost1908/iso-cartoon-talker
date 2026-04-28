@@ -3,6 +3,7 @@ import base64
 from io import BytesIO
 import subprocess
 import os
+import sys
 from PIL import Image
 import sqlite3
 import tempfile
@@ -12,9 +13,7 @@ import random
 import string
 import traceback
 
-program_files = os.path.join(os.environ['ProgramFiles'])
-
-iso_path = os.path.join(program_files, 'iso-cartoon-talker')
+iso_path = os.path.dirname(os.path.abspath(__file__))
 os.chdir(iso_path)
 
 voice_train_config_path = 'configs/softvc_config.json'
@@ -43,22 +42,55 @@ class Api:
         js_code = f"appendOutput({text!r})"
         webview.windows[0].evaluate_js(js_code)
 
-    def run_command(self, cmd, description=""):
+    def _decode_base64_payload(self, payload, field_name):
+        if payload is None:
+            raise ValueError(f"{field_name} is empty (None).")
+        if not isinstance(payload, str):
+            raise ValueError(f"{field_name} must be a base64 string.")
+
+        raw = payload.split(',', 1)[1] if payload.startswith('data:') else payload
+        raw = raw.strip()
+        if not raw:
+            raise ValueError(f"{field_name} is empty.")
+
+        try:
+            return base64.b64decode(raw)
+        except Exception as e:
+            raise ValueError(f"{field_name} is not valid base64.") from e
+
+    def run_command(self, cmd, description="", env_vars=None):
         if description:
             self.log(description)
+        env = os.environ.copy()
+        if env_vars:
+            env.update(env_vars)
+        # Ensure UTF-8 encoding in subprocess
+        env.setdefault("PYTHONIOENCODING", "utf-8")
+        env.setdefault("PYTHONLEGACYWINDOWSSTDIO", "utf8")
         process = subprocess.Popen(
             cmd,
             cwd=iso_path,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
+            encoding='utf-8',
+            errors='replace',
             bufsize=1,
-            creationflags=subprocess.CREATE_NO_WINDOW
+            creationflags=subprocess.CREATE_NO_WINDOW,
+            env=env
         )
         for line in process.stdout:
             self.log(line.strip())
             print(line.strip())
         process.wait()
+        if process.returncode != 0:
+            raise subprocess.CalledProcessError(process.returncode, cmd)
+
+    def prepare_filelists(self):
+        self.run_command([
+            sys.executable,
+            "generate_filelists.py",
+        ], description="Preparing train/val/test filelists...")
 
     # ------------------ Cartoon Talker ------------------
     def run_cartoon_talker(self, image_base64, target_audio, model_path, width, height):
@@ -66,19 +98,19 @@ class Api:
         final_video_output_dir = "output/"
         final_audio_path = "tmp/target_voice_to_source_voice.wav"
 
-        target_path = os.path.join(tmp_dir, "target_voice.wav")
-        with open(target_path, "wb") as f:
-            f.write(base64.b64decode(target_audio))
-
-        if image_base64.startswith('data:image'):
-            image_base64 = image_base64.split(',')[1]
-
-        tmp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.jpg')
-        image_path = tmp_file.name
-        with open(image_path, 'wb') as f:
-            f.write(base64.b64decode(image_base64))
-
         try:
+            target_audio_bytes = self._decode_base64_payload(target_audio, "target_audio")
+            image_bytes = self._decode_base64_payload(image_base64, "image_base64")
+
+            target_path = os.path.join(tmp_dir, "target_voice.wav")
+            with open(target_path, "wb") as f:
+                f.write(target_audio_bytes)
+
+            tmp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.jpg')
+            image_path = tmp_file.name
+            with open(image_path, 'wb') as f:
+                f.write(image_bytes)
+
             if model_path:
                 self.run_command([
                     r"env_softvc\Scripts\svc.exe",
@@ -87,7 +119,7 @@ class Api:
                     "-o", final_audio_path,
                     "-m", model_path,
                     "-c", os.path.abspath(voice_train_config_path)
-                ], description="Cloning sound...")
+                ], description="Cloning sound...", env_vars={"TORCHAUDIO_USE_SOUNDFILE": "1"})
 
             else:
                 final_audio_path = target_path
@@ -101,8 +133,14 @@ class Api:
             ], description="Running SadTalker animation...")
 
             return "✅ Process completed. Check output folder."
+        except ValueError as e:
+            self.log(str(e))
+            return f"❌ {e}"
         except subprocess.CalledProcessError as e:
             return f"❌ Error occurred: {e}"
+        except Exception as e:
+            self.log(traceback.format_exc())
+            return f"❌ Unexpected error: {e}"
 
 
     # ------------------ Cartoonize ------------------
@@ -159,7 +197,7 @@ class Api:
                 "pre-split",
                 "-i", source_dir,
                 "-o", dataset_raw_dir
-            ], description="Pre-splitting dataset...")
+            ], description="Pre-splitting dataset...", env_vars={"TORCHAUDIO_USE_SOUNDFILE": "1", "PYTHONIOENCODING": "utf-8", "PYTHONLEGACYWINDOWSSTDIO": "utf8"})
 
             # copy files
             for filename in os.listdir(dataset_raw_dir):
@@ -168,6 +206,8 @@ class Api:
                 if os.path.isfile(src_file):
                     shutil.copy2(src_file, dst_file)
 
+            self.prepare_filelists()
+
             # ---------------- pre-config ----------------
             self.run_command([
                 r"env_softvc\Scripts\svc.exe",
@@ -175,7 +215,7 @@ class Api:
                 "-i", dataset_dir,
                 "-f", filelists_dir,
                 "-c", os.path.abspath(voice_train_config_path)
-            ], description="Pre-configuring...")
+            ], description="Pre-configuring...", env_vars={"PYTHONIOENCODING": "utf-8", "PYTHONLEGACYWINDOWSSTDIO": "utf8"})
 
             # ---------------- epoch ----------------
             with open(voice_train_config_path, 'r') as f:
@@ -192,7 +232,7 @@ class Api:
                 "pre-hubert",
                 "-i", dataset_dir,
                 "-c", os.path.abspath(voice_train_config_path)
-            ], description="Running pre-hubert...")
+            ], description="Running pre-hubert...", env_vars={"TORCHAUDIO_USE_SOUNDFILE": "1", "PYTHONIOENCODING": "utf-8", "PYTHONLEGACYWINDOWSSTDIO": "utf8"})
 
             # ---------------- train ----------------
             self.run_command([
@@ -201,7 +241,7 @@ class Api:
                 "-c", os.path.abspath(voice_train_config_path),
                 "-m", os.path.abspath(tmp_dir),
                 "-nt"
-            ], description="Training model...")
+            ], description="Training model...", env_vars={"TORCHAUDIO_USE_SOUNDFILE": "1", "PYTHONIOENCODING": "utf-8", "PYTHONLEGACYWINDOWSSTDIO": "utf8"})
 
             # move model
             model_path = os.path.join(tmp_dir, f"G_{epoch}.pth")
@@ -233,6 +273,9 @@ class Api:
                 "--language", "tr",
                 "--output", output_file
             ], description="Running TTS...")
+
+            if not os.path.exists(output_file):
+                raise FileNotFoundError("TTS output file was not created.")
 
             with open(output_file, "rb") as f:
                 audio_base64 = base64.b64encode(f.read()).decode("utf-8")
