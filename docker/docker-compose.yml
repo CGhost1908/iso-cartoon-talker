@@ -1,0 +1,44 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    entrypoint: []
+    command: ["python", "docker_entrypoint.py"]
+    ports:
+      - "8000:8000"
+    environment:
+      PORT: "8000"
+      HF_HOME: /data/hf
+      TRANSFORMERS_CACHE: /data/hf
+      COQUI_TOS_AGREED: "1"
+      SADTALKER_DIR: /opt/external/SadTalker
+      COQUI_PYTHON: /app/env_coqui/bin/python
+      SDXL_PYTHON: /app/env_sdxl/bin/python
+      SOFTVC_PYTHON: /app/env_softvc/bin/python
+      SOFTVC_CLI: /app/env_softvc/bin/svc
+      SADTALKER_PYTHON: /app/env_sadtalker/bin/python
+    volumes:
+      - ./app.py:/app/app.py
+      - ./bridge.js:/app/bridge.js
+      - ./docker_entrypoint.py:/app/docker_entrypoint.py
+      - ./generate_filelists.py:/app/generate_filelists.py
+      - ./index.html:/app/index.html
+      - ./run_coqui.py:/app/run_coqui.py
+      - ./run_sadtalker.py:/app/run_sadtalker.py
+      - ./run_sdxl.py:/app/run_sdxl.py
+      - ./script.js:/app/script.js
+      - ./style.css:/app/style.css
+      - ./configs:/app/configs
+      - hf_cache:/data/hf
+      - app_data:/app/data
+      - app_models:/app/models
+      - app_output:/app/output
+      - app_tmp:/app/tmp
+
+volumes:
+  hf_cache:
+  app_data:
+  app_models:
+  app_output:
+  app_tmp:

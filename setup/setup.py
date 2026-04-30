@@ -1,6 +1,7 @@
 import webview
 import subprocess
 import os
+import urllib.request
 import ctypes, sys
 import pythoncom
 import shutil
@@ -14,72 +15,40 @@ class Api:
         js_code = f"appendOutput({text!r})"
         webview.windows[0].evaluate_js(js_code)
 
-    def patch_preprocess_hubert_f0(self):
-        """Patch preprocess_hubert_f0.py to use soundfile instead of torchaudio.load()"""
-        try:
-            import site
-            site_packages = site.getsitepackages()[0]
-            file_path = os.path.join(site_packages, "so_vits_svc_fork", "preprocessing", "preprocess_hubert_f0.py")
+    def find_python_310(self):
+        if sys.version_info[:2] == (3, 10):
+            return sys.executable
 
-            if not os.path.exists(file_path):
-                self.log(f"Warning: Could not find {file_path}")
-                return False
+        candidates = [
+            ["py", "-3.10", "-c", "import sys; print(sys.executable)"],
+            ["python3.10", "-c", "import sys; print(sys.executable)"],
+        ]
 
-            with open(file_path, 'r', encoding='utf-8') as f:
-                content = f.read()
+        for cmd in candidates:
+            try:
+                output = subprocess.check_output(
+                    cmd,
+                    stderr=subprocess.STDOUT,
+                    text=True,
+                    creationflags=subprocess.CREATE_NO_WINDOW,
+                ).strip()
+                if output and os.path.exists(output):
+                    return output
+            except Exception:
+                continue
 
-            # Check if already patched
-            if "import soundfile" in content and 'soundfile.read(str(filepath))' in content:
-                self.log("preprocess_hubert_f0.py already patched!")
-                return True
+        return None
 
-            # Add soundfile import if not present
-            if "import soundfile" not in content:
-                content = content.replace(
-                    "import torchaudio\nfrom joblib",
-                    "import torchaudio\nimport soundfile\nfrom joblib"
-                )
-
-            # Replace torchaudio.load() with soundfile.read()
-            old_code = "    # Compute spectrogram\n    audio, sr = torchaudio.load(filepath)\n    spec = spectrogram_torch(audio, hps).squeeze(0)"
-            new_code = """    # Compute spectrogram
-    audio_np, sr_check = soundfile.read(str(filepath))
-    if audio_np.ndim > 1:
-        audio_np = np.mean(audio_np, axis=1)
-    audio = torch.from_numpy(audio_np).float().unsqueeze(0)
-    spec = spectrogram_torch(audio, hps).squeeze(0)"""
-
-            if old_code in content:
-                content = content.replace(old_code, new_code)
-
-            with open(file_path, 'w', encoding='utf-8') as f:
-                f.write(content)
-
-            self.log("Successfully patched preprocess_hubert_f0.py!")
-            return True
-        except Exception as e:
-            self.log(f"Error patching preprocess_hubert_f0.py: {e}")
-            return False
-
-    def run_command(self, cmd, description="", env_vars=None):
+    def run_command(self, cmd, description=""):
         if description:
             self.log(description)
         try:
-            env = os.environ.copy()
-            if env_vars:
-                env.update(env_vars)
-            # Ensure UTF-8 encoding in subprocess
-            env.setdefault("PYTHONIOENCODING", "utf-8")
-            env.setdefault("PYTHONLEGACYWINDOWSSTDIO", "utf8")
             result = subprocess.run(
                 cmd,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 text=True,
-                encoding='utf-8',
-                errors='replace',
                 creationflags=subprocess.CREATE_NO_WINDOW,
-                env=env,
                 check=True
             )
             for line in result.stdout.splitlines():
@@ -101,28 +70,30 @@ class Api:
 
     def install_iso(self):
         if not self.is_admin():
+            args = " ".join([f'"{arg}"' if " " in arg else arg for arg in sys.argv])
             ctypes.windll.shell32.ShellExecuteW(
-                None, "runas", sys.executable, " ".join(sys.argv), None, 1
+                None, "runas", sys.executable, args, None, 1
             )
             webview.windows[0].destroy()
             sys.exit()
             return
 
-        if sys.version_info.major == 3 and sys.version_info.minor == 10:
-            python_path = sys.executable
-            print("Python 3.10 yolu:", python_path)
-        else:
+        python_path = self.find_python_310()
+        if not python_path:
             webview.windows[0].evaluate_js("raiseError('Python 3.10 yüklü değil!')")
             return
 
-        program_files = os.path.join(os.environ['ProgramFiles'])
+        print("Python 3.10 yolu:", python_path)
+        self.log(f"Python 3.10 bulundu: {python_path}")
 
-        os.makedirs(program_files, exist_ok=True)
-        os.chdir(program_files)
-        iso_path = os.path.join(program_files, 'iso-cartoon-talker')
+        desktop_path = os.path.join(os.environ['USERPROFILE'], 'Desktop')
+
+        os.makedirs(desktop_path, exist_ok=True)
+        os.chdir(desktop_path)
+        iso_path = os.path.join(desktop_path, 'iso-cartoon-talker')
 
         if os.path.exists(iso_path):
-            webview.windows[0].evaluate_js(r"raiseError('C:/Program Files/iso-cartoon-talker dizini zaten mevcut! Klasörü silip tekrar deneyin.')")
+            webview.windows[0].evaluate_js(r"raiseError('Desktop/iso-cartoon-talker already exists! Delete it and try again.')")
             return
 
         error_log = r"Error log:\n If you have problems, contact us and share this file.\n\n"
@@ -137,24 +108,32 @@ class Api:
         os.chdir(iso_path)
 
         cmd2 = self.run_command([
+            python_path,
+            "-m",
             "pip",
             "install",
             "-r", "requirements.txt"
         ], description="Installing requirements...")
 
         cmd3 = self.run_command([
+            python_path,
+            "-m",
             "pip",
             "download",
             "torch==2.7.1+cu118", "--index-url", "https://download.pytorch.org/whl/cu118", "--no-deps"
         ], description="Downloading torch...")
 
         cmd4 = self.run_command([
+            python_path,
+            "-m",
             "pip",
             "download",
             "torchaudio==2.7.1+cu118", "--index-url", "https://download.pytorch.org/whl/cu118", "--no-deps"
         ], description="Downloading torchaudio...")
 
         cmd5 = self.run_command([
+            python_path,
+            "-m",
             "pip",
             "download",
             "torchvision==0.22.1+cu118", "--index-url", "https://download.pytorch.org/whl/cu118", "--no-deps"
@@ -162,7 +141,7 @@ class Api:
 
         # SDXL Setup
         cmd6 = self.run_command([
-            "python",
+            python_path,
             "-m",
             "venv",
             "env_sdxl"
@@ -210,7 +189,7 @@ class Api:
 
         #SoftVC Setup
         cmd11 = self.run_command([
-            "python",
+            python_path,
             "-m",
             "venv",
             "env_softvc"
@@ -253,7 +232,8 @@ class Api:
             "env_softvc/Scripts/pip.exe",
             "install",
             "matplotlib==3.7.1",
-            "psutil==7.0.0"
+            "psutil==7.0.0",
+            "torchcodec"
         ], description="Installing matplotlib...")
 
         cmd16 = self.run_command([
@@ -263,24 +243,9 @@ class Api:
             "so-vits-svc-fork"
         ], description="Installing so-vits-svc-fork...")
 
-        cmd16_1 = self.run_command([
-            "env_softvc/Scripts/pip.exe",
-            "uninstall",
-            "torchcodec",
-            "-y"
-        ], description="Removing torchcodec (requires FFmpeg DLLs)...")
-
-        cmd16_2 = self.run_command([
-            "env_softvc/Scripts/pip.exe",
-            "install",
-            "soundfile"
-        ], description="Installing soundfile for audio loading...")
-
-        self.patch_preprocess_hubert_f0()
-
         # Coqui TTS Setup
         cmd17 = self.run_command([
-            "python",
+            python_path,
             "-m",
             "venv",
             "env_coqui"
@@ -318,7 +283,7 @@ class Api:
 
         # SadTalker Setup
         cmd22 = self.run_command([
-            "python",
+            python_path,
             "-m",
             "venv",
             "env_sadtalker"
@@ -328,7 +293,7 @@ class Api:
             "git",
             "clone",
             "https://github.com/OpenTalker/SadTalker"
-        ], description="Cloning Coqui TTS repository...")
+        ], description="Cloning SadTalker repository...")
 
         cmd24 = self.run_command([
             "env_sadtalker/Scripts/pip.exe",
@@ -353,6 +318,8 @@ class Api:
         ], description="Installing torch...")
 
         cmd27 = self.run_command([
+            python_path,
+            "-m",
             "pip",
             "cache",
             "purge"
@@ -393,10 +360,28 @@ class Api:
         os.makedirs(train_base_models_path, exist_ok=True)
         self.log(f"Created {train_base_models_path}")
 
-        cmd28 = self.run_command([
-            "bash",
-            "models.sh"
-        ], description="Downloading models...")
+        self.log("Downloading models...")
+        cmd28 = True
+        files = [
+            ("https://github.com/OpenTalker/SadTalker/releases/download/v0.0.2-rc/mapping_00109-model.pth.tar", "SadTalker/checkpoints/mapping_00109-model.pth.tar"),
+            ("https://github.com/OpenTalker/SadTalker/releases/download/v0.0.2-rc/mapping_00229-model.pth.tar", "SadTalker/checkpoints/mapping_00229-model.pth.tar"),
+            ("https://github.com/OpenTalker/SadTalker/releases/download/v0.0.2-rc/SadTalker_V0.0.2_256.safetensors", "SadTalker/checkpoints/SadTalker_V0.0.2_256.safetensors"),
+            ("https://github.com/OpenTalker/SadTalker/releases/download/v0.0.2-rc/SadTalker_V0.0.2_512.safetensors", "SadTalker/checkpoints/SadTalker_V0.0.2_512.safetensors"),
+            ("https://github.com/CGhost1908/iso-cartoon-talker/releases/download/v0.0.1/sample_voice.wav", "src/sample_voice.wav"),
+            ("https://github.com/CGhost1908/iso-cartoon-talker/releases/download/v0.0.1/G_0.pth", "train_base_models/G_0.pth"),
+            ("https://github.com/CGhost1908/iso-cartoon-talker/releases/download/v0.0.1/D_0.pth", "train_base_models/D_0.pth"),
+        ]
+
+        try:
+            for url, path in files:
+                os.makedirs(os.path.dirname(path), exist_ok=True)
+                self.log(f"Downloading: {path}")
+                urllib.request.urlretrieve(url, path)
+            self.log("Done")
+        except Exception as e:
+            cmd28 = False
+            error_log += f"Error downloading model files: {e}\n"
+            [self.log(f"Error downloading model files! That is important please read documentation!: {e}") for _ in range(30)]
 
         folders = [
             checkpoints_path,
@@ -413,7 +398,7 @@ class Api:
 
                 for filename in os.listdir(folder_path):
                     old_path = os.path.join(folder_path, filename)
-              
+
                     if not os.path.isfile(old_path):
                         continue
 

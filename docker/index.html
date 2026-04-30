@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cartoon Talker Docker</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="bridge.js"></script>
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div>
+        <p class="eyebrow">Docker rebuild</p>
+        <h1>Cartoon Talker</h1>
+        <p class="muted">Everything inside this folder. The container builds the runtime and downloads the models on demand.</p>
+      </div>
+
+      <section class="panel">
+        <div class="panel-title">
+          <h2>Avatars</h2>
+          <button id="refreshBtn" class="ghost">Refresh</button>
+        </div>
+        <div id="avatarList" class="avatar-list"></div>
+      </section>
+    </aside>
+
+    <main class="main">
+      <section class="hero card">
+        <div>
+          <p class="eyebrow">Rebuilt from scratch</p>
+          <h2>Generate, animate and train from one local container.</h2>
+        </div>
+        <div class="status-pill" id="healthPill">Starting...</div>
+      </section>
+
+      <section class="grid">
+        <article class="card">
+          <div class="panel-title"><h3>Create avatar</h3></div>
+          <label class="file-drop">
+            <input type="file" id="avatarImageInput" accept="image/*">
+            <span id="avatarImageLabel">Choose image</span>
+          </label>
+          <input id="avatarNameInput" class="text-input" type="text" placeholder="Avatar name">
+          <div class="row">
+            <button id="cartoonizeBtn">Cartoonize</button>
+            <button id="createAvatarBtn" class="secondary">Save avatar</button>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="panel-title"><h3>Animate / TTS</h3></div>
+          <p id="selectedAvatarModel" class="muted">No avatar selected.</p>
+          <label class="file-drop">
+            <input type="file" id="targetAudioInput" accept="audio/*">
+            <span id="targetAudioLabel">Choose target audio</span>
+          </label>
+          <textarea id="ttsText" class="textarea" placeholder="Or generate audio with TTS"></textarea>
+          <label class="toggle"><input type="checkbox" id="useTtsToggle"> Use TTS audio</label>
+          <label class="toggle"><input type="checkbox" id="useSourceVoiceToggle"> Use avatar voice model</label>
+          <button id="runBtn">Run</button>
+        </article>
+
+        <article class="card">
+          <div class="panel-title"><h3>Train voice</h3></div>
+          <label class="file-drop">
+            <input type="file" id="trainAudioInput" accept="audio/*">
+            <span id="trainAudioLabel">Choose training audio</span>
+          </label>
+          <input id="epochInput" class="text-input" type="number" min="1" max="9999" value="1000">
+          <button id="trainBtn" class="secondary">Train voice model</button>
+        </article>
+      </section>
+
+      <section class="card preview-card">
+        <div class="panel-title">
+          <h3>Avatar preview</h3>
+          <div class="actions">
+            <button id="renameBtn" class="ghost">Rename</button>
+            <button id="deleteBtn" class="ghost danger">Delete</button>
+          </div>
+        </div>
+        <div class="preview-wrap">
+          <div class="preview-images">
+            <figure>
+              <img id="selectedAvatarImage" alt="original avatar" />
+              <figcaption class="muted">Original</figcaption>
+            </figure>
+            <figure>
+              <img id="cartoonizedAvatarImage" alt="cartoonized avatar" />
+              <figcaption class="muted">Cartoonized</figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
+
+      <section class="card log-card">
+        <div class="panel-title"><h3>Output</h3></div>
+        <div id="videoResult" class="video-result" hidden></div>
+        <pre id="output"></pre>
+      </section>
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

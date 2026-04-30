@@ -3,11 +3,7 @@
         "log_interval": 100,
         "eval_interval": 200,
         "seed": 1234,
-<<<<<<< HEAD
-        "epochs": 9999,
-=======
         "epochs": 1000,
->>>>>>> 9936863f757c56e7c46bc4ac0f62d5ac2b150513
         "learning_rate": 0.0001,
         "betas": [
             0.8,
@@ -33,13 +29,8 @@
         "accumulate_grad_batches": 1
     },
     "data": {
-<<<<<<< HEAD
-        "training_files": "D:/ai-animator/tmp/filelists/train.txt",
-        "validation_files": "D:/ai-animator/tmp/filelists/val.txt",
-=======
-        "training_files": "C:/Users/Eren/Desktop/iso-cartoon-talker/tmp/filelists/train.txt",
-        "validation_files": "C:/Users/Eren/Desktop/iso-cartoon-talker/tmp/filelists/val.txt",
->>>>>>> 9936863f757c56e7c46bc4ac0f62d5ac2b150513
+        "training_files": "/app/tmp/filelists/train.txt",
+        "validation_files": "/app/tmp/filelists/val.txt",
         "max_wav_value": 32768.0,
         "sampling_rate": 44100,
         "filter_length": 2048,
@@ -108,10 +99,7 @@
         }
     },
     "spk": {
-<<<<<<< HEAD
-        "Fuat Bey Cartoonize": 0
-=======
-        "Fuat Bey": 0
->>>>>>> 9936863f757c56e7c46bc4ac0f62d5ac2b150513
+        "Eren": 0,
+        "Fuat Bey": 1
     }
 }
